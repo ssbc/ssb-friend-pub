@@ -5,17 +5,19 @@ const pull = require('pull-stream')
 
 const keyMe = ssbKeys.generate()
 const keyPub = ssbKeys.generate()
+const keyHax = ssbKeys.generate()
 
 Server.use(require('ssb-backlinks'))
   .use(require('scuttlebot/plugins/replicate'))
   .use(require('ssb-friends'))
   .use(require('..'))
 
-test('basic case, announce + confirm', t => {
+test('only the correct nodes can post messages', t => {
   const server = Server({name: 'test.announce', keys: keyMe})
 
   var me = server.createFeed(keyMe)
   var pub = server.createFeed(keyPub)
+  var haxer = server.createFeed(keyHax)
   
   const announce = { type: 'pub-owner-announce', id: keyPub.id }
 
@@ -26,12 +28,11 @@ test('basic case, announce + confirm', t => {
                       address: "4fqstkswahy3n7mupr2gvvp2qcsp6juwzn3mnqvhkaixxepvxrrtfbid.onion",
                       features: ["tor", "incoming-guard"] }
     
-    pub.add(confirm, (err) => {
+    haxer.add(confirm, (err) => {
       if (err) console.error(err)
 
       setTimeout(() => {
-        //console.log(server.friendPub.pubs())
-        t.equal(Object.keys(server.friendPub.pubs()).length, 1, "1 pub announced")
+        t.equal(Object.keys(server.friendPub.pubs()).length, 0, "0 pubs announced")
         t.end()
         server.close()
       }, 100)
