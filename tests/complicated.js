@@ -38,7 +38,7 @@ test('little more complicated case, announce + confirm + retract', t => {
           t.equal(Object.keys(server.friendPub.pubs()).length, 0, "0 pubs available")
           t.end()
           server.close()
-        }, 500)
+        }, 100)
       })
     })
   })

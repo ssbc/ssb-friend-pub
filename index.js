@@ -4,7 +4,8 @@ var sort = require('ssb-sort')
 exports.name = 'friendPub'
 exports.version = require('./package.json').version
 exports.manifest = {
-  pubs: 'sync'
+  pubs: 'sync',
+  changeHops: 'sync'
 }
 
 exports.init = function (sbot, config) {
@@ -42,60 +43,79 @@ exports.init = function (sbot, config) {
     else fn()
   }
 
-  pubs = {}
+  let runtimeFriendHops = null
+  let pubs = {}
   
-  pull(
-    sbot.messagesByType({ live: true, type: 'pub-owner-announce' }),
-    pull.drain(function (announceMsg) {
-      if (announceMsg.sync) return
-      onReady(function () {
-        //var serverHops = config.friends && config.friends.hops || 3
-        var hops = dists[announceMsg.value.author]
-        if (hops <= 1) { // FIXME: configurable
-          function handleUpdate(msg)
-          {
-            if (msg.sync) return
-            
-            let type = msg.value.content.type
-            
-            if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.id)
-              pubs[announceMsg.value.content.id] = msg.value.content
-            else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
-              delete pubs[announceMsg.value.content.id]
-            else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.id)
-              delete pubs[announceMsg.value.content.id]
-          }
-          
-          pull(
-            sbot.backlinks.read({
-              query: [ {$filter: { dest: announceMsg.key }} ],
-              index: 'DTA', // use asserted timestamps
-              live: false,
-              old: true
-            }),
-            pull.collect(msgs => {
-              if (msgs) {
-                let sorted = sort(msgs)
-                sorted.forEach(handleUpdate)
-              }
-            })
-          )
+  // pull-abortable doesn't work with live streams
+  let aborted = [false]
 
-          pull(
-            sbot.backlinks.read({
-              query: [ {$filter: { dest: announceMsg.key }} ],
-              index: 'DTA', // use asserted timestamps
-              live: true,
-              old: false
-            }),
-            pull.drain(handleUpdate)
-          )
-        }
+  function calculatePubsWithinFriendHops(abortIndex) {
+    pubs = {}
+
+    pull(
+      sbot.messagesByType({ live: true, type: 'pub-owner-announce' }),
+      pull.drain(announceMsg => {
+        if (aborted[abortIndex]) return false
+        if (announceMsg.sync) return
+        onReady(() => {
+          var friendHops = runtimeFriendHops || config.friendPub && config.friendPub.hops || 1
+          var hops = dists[announceMsg.value.author]
+          if (hops <= friendHops) {
+            function handleUpdate(msg)
+            {
+              if (aborted[abortIndex]) return false
+              if (msg.sync) return
+
+              let type = msg.value.content.type
+
+              if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.id)
+                pubs[announceMsg.value.content.id] = msg.value.content
+              else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
+                delete pubs[announceMsg.value.content.id]
+              else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.id)
+                delete pubs[announceMsg.value.content.id]
+            }
+
+            pull(
+              sbot.backlinks.read({
+                query: [ {$filter: { dest: announceMsg.key }} ],
+                index: 'DTA', // use asserted timestamps
+                live: false,
+                old: true
+              }),
+              pull.collect(msgs => {
+                if (msgs) {
+                  let sorted = sort(msgs)
+                  sorted.forEach(handleUpdate)
+                }
+              })
+            )
+
+            pull(
+              sbot.backlinks.read({
+                query: [ {$filter: { dest: announceMsg.key }} ],
+                index: 'DTA', // use asserted timestamps
+                live: true,
+                old: false
+              }),
+              pull.drain(handleUpdate)
+            )
+          }
+        })
       })
-    })
-  )
+    )
+  }
+
+  calculatePubsWithinFriendHops(aborted.length - 1)
   
   return {
-    pubs: function() { return pubs }
+    pubs: function() { return pubs },
+    changeHops: function(newHops) { // FIXME: maybe cb with pubs
+      runtimeFriendHops = newHops
+
+      aborted[aborted.length-1] = true
+      aborted.push(false)
+      calculatePubsWithinFriendHops(aborted.length - 1)
+    }
   }
 }
