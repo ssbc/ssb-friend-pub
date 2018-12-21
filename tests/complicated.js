@@ -6,13 +6,13 @@ const pull = require('pull-stream')
 const keyMe = ssbKeys.generate()
 const keyPub = ssbKeys.generate()
 
-Server.use(require('ssb-backlinks'))
-  .use(require('scuttlebot/plugins/replicate'))
-  .use(require('ssb-friends'))
-  .use(require('..'))
+test('little more complicated case, announce + confirm + retract', t => {
+  Server.use(require('ssb-backlinks'))
+    .use(require('scuttlebot/plugins/replicate'))
+    .use(require('ssb-friends'))
+    .use(require('..'))
 
-test('basic case, announce + confirm', t => {
-  const server = Server({name: 'test.announce', keys: keyMe})
+  const server = Server({name: 'test.retract', keys: keyMe})
 
   var me = server.createFeed(keyMe)
   var pub = server.createFeed(keyPub)

@@ -7,12 +7,12 @@ const keyMe = ssbKeys.generate()
 const keyPub = ssbKeys.generate()
 const keyHax = ssbKeys.generate()
 
-Server.use(require('ssb-backlinks'))
-  .use(require('scuttlebot/plugins/replicate'))
-  .use(require('ssb-friends'))
-  .use(require('..'))
-
 test('only the correct nodes can post messages', t => {
+  Server.use(require('ssb-backlinks'))
+    .use(require('scuttlebot/plugins/replicate'))
+    .use(require('ssb-friends'))
+    .use(require('..'))
+
   const server = Server({name: 'test.announce', keys: keyMe})
 
   var me = server.createFeed(keyMe)
