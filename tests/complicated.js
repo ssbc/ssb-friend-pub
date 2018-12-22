@@ -22,7 +22,7 @@ test('little more complicated case, announce + confirm + retract', t => {
   me.add(announce, (err, announceMsg) => {
     if (err) console.error(err)
 
-    const confirm = { type: 'pub-owner-confirm', message: announceMsg.key,
+    const confirm = { type: 'pub-owner-confirm', announce: announceMsg.key,
                       address: "4fqstkswahy3n7mupr2gvvp2qcsp6juwzn3mnqvhkaixxepvxrrtfbid.onion",
                       features: ["tor", "incoming-guard"] }
     

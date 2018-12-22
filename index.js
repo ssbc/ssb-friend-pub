@@ -5,6 +5,7 @@ exports.name = 'friendPub'
 exports.version = require('./package.json').version
 exports.manifest = {
   pubs: 'sync',
+  pubChanges: 'async',
   changeHops: 'sync'
 }
 
@@ -16,11 +17,29 @@ exports.init = function (sbot, config) {
     return
   }
 
+  var runtimeFriendHops = null
+  // pull-abortable doesn't work with live streams
+  var aborted = []
+
   var cbs = []
   var dists = {}
+
   function gotHops(data) {
-    for(var k in data) {
+    let friendHops = runtimeFriendHops != null ? runtimeFriendHops : (config.friendPub && config.friendPub.hops || 1)
+    let wasChange = false
+    for (let k in data) {
+      if (data[k] <= friendHops && (dists[k] > friendHops || dists[k] === undefined))
+        wasChange = true
+      else if (data[k] > friendHops && dists[k] <= friendHops)
+        wasChange = true
+
       dists[k] = data[k]
+    }
+
+    if (wasChange) {
+      if (aborted.length > 0) aborted[aborted.length-1] = true
+      aborted.push(false)
+      calculatePubsWithinFriendHops(aborted.length - 1)
     }
   }
   
@@ -43,23 +62,21 @@ exports.init = function (sbot, config) {
     else fn()
   }
 
-  let runtimeFriendHops = null
-  let pubs = {}
+  var pubs = {}
+  var pubsChangeCb = null
   
-  // pull-abortable doesn't work with live streams
-  let aborted = [false]
-
   function calculatePubsWithinFriendHops(abortIndex) {
     pubs = {}
+    if (pubsChangeCb) pubsChangeCb(pubs)
 
     pull(
       sbot.messagesByType({ live: true, type: 'pub-owner-announce' }),
+      pull.filter(msg => !msg.sync),
       pull.drain(announceMsg => {
         if (aborted[abortIndex]) return false
-        if (announceMsg.sync) return
         onReady(() => {
-          var friendHops = runtimeFriendHops || config.friendPub && config.friendPub.hops || 1
-          var hops = dists[announceMsg.value.author]
+          let friendHops = runtimeFriendHops != null ? runtimeFriendHops : (config.friendPub && config.friendPub.hops || 1)
+          let hops = dists[announceMsg.value.author]
           if (hops <= friendHops) {
             function handleUpdate(msg)
             {
@@ -74,6 +91,8 @@ exports.init = function (sbot, config) {
                 delete pubs[announceMsg.value.content.id]
               else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.id)
                 delete pubs[announceMsg.value.content.id]
+
+              if (pubsChangeCb) pubsChangeCb(pubs)
             }
 
             pull(
@@ -83,7 +102,7 @@ exports.init = function (sbot, config) {
                 live: false,
                 old: true
               }),
-              pull.collect(msgs => {
+              pull.collect((err, msgs) => {
                 if (msgs) {
                   let sorted = sort(msgs)
                   sorted.forEach(handleUpdate)
@@ -106,14 +125,16 @@ exports.init = function (sbot, config) {
     )
   }
 
-  calculatePubsWithinFriendHops(aborted.length - 1)
-  
   return {
     pubs: function() { return pubs },
-    changeHops: function(newHops) { // FIXME: maybe cb with pubs
+    pubChanges: function(cb) {
+      pubsChangeCb = cb
+      cb(pubs)
+    },
+    changeHops: function(newHops) {
       runtimeFriendHops = newHops
 
-      aborted[aborted.length-1] = true
+      if (aborted.length > 0) aborted[aborted.length-1] = true
       aborted.push(false)
       calculatePubsWithinFriendHops(aborted.length - 1)
     }
