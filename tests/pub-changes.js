@@ -22,10 +22,10 @@ test('pub changes', t => {
   let stateIndex = 0
 
   server.friendPub.pubChanges(pubs => {
-    if (stateIndex == 0)
-      t.equal(Object.keys(server.friendPub.pubs()).length, 0, "0 pubs available")
-    if (stateIndex == 2) { // 1 is reset pubs
-      t.equal(Object.keys(server.friendPub.pubs()).length, 1, "1 pub available")
+    if (stateIndex == 0) // reset pubs
+      t.equal(pubs.length, 0, "0 pubs available")
+    if (stateIndex == 1) {
+      t.equal(pubs.length, 1, "1 pub available")
       t.end()
       server.close()
     }
@@ -33,7 +33,7 @@ test('pub changes', t => {
     stateIndex += 1
   })
   
-  const announce = { type: 'pub-owner-announce', id: keyPub.id }
+  const announce = { type: 'pub-owner-announce', pub: keyPub.id }
   
   friend.add(announce, (err, announceMsg) => {
     if (err) console.error(err)
@@ -44,6 +44,8 @@ test('pub changes', t => {
     
     pub.add(confirm, (err) => {
       if (err) console.error(err)
+
+      t.equal(server.friendPub.pubs().length, 0, "0 pubs available")
 
       const befriend = { type: "contact", contact: keyFriend.id, following: true }
       me.add(befriend, (err) => {

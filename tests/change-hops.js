@@ -27,7 +27,7 @@ test('change hops', t => {
     friend.add(befriendPub, (err) => {
       if (err) console.error(err)
 
-      const announce = { type: 'pub-owner-announce', id: keyPub.id }
+      const announce = { type: 'pub-owner-announce', pub: keyPub.id }
 
       friend.add(announce, (err, announceMsg) => {
         if (err) console.error(err)
@@ -40,12 +40,12 @@ test('change hops', t => {
           if (err) console.error(err)
           
           setTimeout(() => {
-            t.equal(Object.keys(server.friendPub.pubs()).length, 1, "1 pub available")
+            t.equal(server.friendPub.pubs().length, 1, "1 pub available")
 
             server.friendPub.changeHops(0)
             
             setTimeout(() => {
-              t.equal(Object.keys(server.friendPub.pubs()).length, 0, "0 pubs available")
+              t.equal(server.friendPub.pubs().length, 0, "0 pubs available")
               t.end()
               server.close()
             }, 100)

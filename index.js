@@ -10,7 +10,7 @@ exports.manifest = {
 }
 
 exports.init = function (sbot, config) {
-  sbot.emit('log:info', ['SBOT', 'friend pubs init'])
+  sbot.emit('log:info', ['SBOT', 'ssb-friend-pub init'])
 
   if (!sbot.friends || !sbot.friends.hopStream) {
     sbot.emit('log:error', ['SBOT', 'missing sbot.friends.hopStream'])
@@ -67,7 +67,7 @@ exports.init = function (sbot, config) {
   
   function calculatePubsWithinFriendHops(abortIndex) {
     pubs = {}
-    if (pubsChangeCb) pubsChangeCb(pubs)
+    if (pubsChangeCb) pubsChangeCb(Object.values(pubs))
 
     pull(
       sbot.messagesByType({ live: true, type: 'pub-owner-announce' }),
@@ -81,18 +81,17 @@ exports.init = function (sbot, config) {
             function handleUpdate(msg)
             {
               if (aborted[abortIndex]) return false
-              if (msg.sync) return
 
               let type = msg.value.content.type
 
-              if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.id)
+              if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.pub)
                 pubs[announceMsg.value.content.id] = msg.value.content
               else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
                 delete pubs[announceMsg.value.content.id]
-              else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.id)
+              else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.pub)
                 delete pubs[announceMsg.value.content.id]
 
-              if (pubsChangeCb) pubsChangeCb(pubs)
+              if (pubsChangeCb) pubsChangeCb(Object.values(pubs))
             }
 
             pull(
@@ -117,6 +116,7 @@ exports.init = function (sbot, config) {
                 live: true,
                 old: false
               }),
+              pull.filter(msg => !msg.sync),
               pull.drain(handleUpdate)
             )
           }
@@ -126,10 +126,9 @@ exports.init = function (sbot, config) {
   }
 
   return {
-    pubs: function() { return pubs },
-    pubChanges: function(cb) {
+    pubs: function() { return Object.values(pubs) },
+    pubChanges: function(cb) { // FIXME: this overwrites internal
       pubsChangeCb = cb
-      cb(pubs)
     },
     changeHops: function(newHops) {
       runtimeFriendHops = newHops

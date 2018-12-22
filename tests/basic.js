@@ -17,7 +17,7 @@ test('basic case, announce + confirm', t => {
   var me = server.createFeed(keyMe)
   var pub = server.createFeed(keyPub)
   
-  const announce = { type: 'pub-owner-announce', id: keyPub.id }
+  const announce = { type: 'pub-owner-announce', pub: keyPub.id }
 
   me.add(announce, (err, announceMsg) => {
     if (err) console.error(err)
@@ -31,7 +31,7 @@ test('basic case, announce + confirm', t => {
 
       setTimeout(() => {
         //console.log(server.friendPub.pubs())
-        t.equal(Object.keys(server.friendPub.pubs()).length, 1, "1 pub announced")
+        t.equal(server.friendPub.pubs().length, 1, "1 pub announced")
         t.end()
         server.close()
       }, 100)

@@ -19,7 +19,7 @@ test('only the correct nodes can post messages', t => {
   var pub = server.createFeed(keyPub)
   var haxer = server.createFeed(keyHax)
   
-  const announce = { type: 'pub-owner-announce', id: keyPub.id }
+  const announce = { type: 'pub-owner-announce', pub: keyPub.id }
 
   me.add(announce, (err, announceMsg) => {
     if (err) console.error(err)
@@ -32,7 +32,7 @@ test('only the correct nodes can post messages', t => {
       if (err) console.error(err)
 
       setTimeout(() => {
-        t.equal(Object.keys(server.friendPub.pubs()).length, 0, "0 pubs announced")
+        t.equal(server.friendPub.pubs().length, 0, "0 pubs announced")
         t.end()
         server.close()
       }, 100)

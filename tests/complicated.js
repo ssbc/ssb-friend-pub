@@ -17,7 +17,7 @@ test('little more complicated case, announce + confirm + retract', t => {
   var me = server.createFeed(keyMe)
   var pub = server.createFeed(keyPub)
   
-  const announce = { type: 'pub-owner-announce', id: keyPub.id }
+  const announce = { type: 'pub-owner-announce', pub: keyPub.id }
 
   me.add(announce, (err, announceMsg) => {
     if (err) console.error(err)
@@ -35,7 +35,7 @@ test('little more complicated case, announce + confirm + retract', t => {
         if (err) console.error(err)
 
         setTimeout(() => {
-          t.equal(Object.keys(server.friendPub.pubs()).length, 0, "0 pubs available")
+          t.equal(server.friendPub.pubs().length, 0, "0 pubs available")
           t.end()
           server.close()
         }, 100)
