@@ -32,7 +32,7 @@ test('change hops', t => {
       friend.add(announce, (err, announceMsg) => {
         if (err) console.error(err)
 
-        const confirm = { type: 'pub-owner-confirm', announce: announceMsg.key,
+        const confirm = { type: 'pub-owner-confirm', announcement: announceMsg.key,
                           address: "4fqstkswahy3n7mupr2gvvp2qcsp6juwzn3mnqvhkaixxepvxrrtfbid.onion",
                           features: ["tor", "incoming-guard"] }
     
