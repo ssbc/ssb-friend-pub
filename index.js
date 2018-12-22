@@ -1,5 +1,6 @@
-var pull = require('pull-stream')
-var sort = require('ssb-sort')
+const pull = require('pull-stream')
+const sort = require('ssb-sort')
+const ref = require('ssb-ref')
 
 exports.name = 'friendPub'
 exports.version = require('./package.json').version
@@ -123,6 +124,29 @@ exports.init = function (sbot, config) {
         })
       })
     )
+  }
+
+  var existingPubs = []
+
+  pubsChangeCb = function (newPubs) {
+    if (!sbot.gossip) return // tests
+
+    console.log("[ssb-friend-pub] pub list: ", newPubs)
+
+    // FIXME: buggy sbot, takes an addr directly
+    /*
+    existingPubs.forEach(function(pub) {
+      if (ref.isAddress(pub.address))
+        sbot.gossip.remove(pub.address)
+    })
+    */
+
+    existingPubs = newPubs.slice()
+
+    newPubs.forEach(function(pub) {
+      if (ref.isAddress(pub.address))
+        sbot.gossip.add(pub.address, 'friends')
+    })
   }
 
   return {

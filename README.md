@@ -25,6 +25,34 @@ Message types for pub:
  - { type: 'pub-owner-confirm', announcement: '%id', address: "xyz.onion", features: ["tor", "incoming-guard"] }
  - { type: 'pub-owner-reject', announcement: '%id' } // to reject a confirm later on
 
+Example:
+
+ssb-server publish --type pub-owner-announce --pub @lbocEWqF2Fg6WMYLgmfYvqJlMfL7hiqVAV6ANjHWNw8=.ed25519
+
+=>
+
+{
+  "key": "%ZSsBgNjZcM+DSwIgvL965Ci71huNJGH5YwonUKGFb2M=.sha256",
+  "value": {
+    "previous": "%JQHAq5bbWlNFK7qsWjzPnIyuTfZuasyC51/jpoyylYY=.sha256",
+    "sequence": 5429,
+    "author": "@6CAxOI3f+LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4+Uv0=.ed25519",
+    "timestamp": 1545478575777,
+    "hash": "sha256",
+    "content": {
+      "type": "pub-owner-announce",
+      "pub": "@lbocEWqF2Fg6WMYLgmfYvqJlMfL7hiqVAV6ANjHWNw8=.ed25519"
+    },
+    "signature": "K/RGckneV7G8WdO2gGxqSZ+Y9cptytLrNoFEyN3B6w2qUvycup0WxHKtWSylL+zy4Jbquu3Tv3pD0/fG2otVCw==.sig.ed25519"
+  },
+  "timestamp": 1545478575785
+}
+
+On the pub use key:
+
+ssb-server publish --type pub-owner-confirm --announcement %ZSsBgNjZcM+DSwIgvL965Ci71huNJGH5YwonUKGFb2M=.sha256 --address 4fqstkswahy3n7mupr2gvvp2qcsp6juwzn3mnqvhkaixxepvxrrtfbid.onion:8008:@lbocEWqF2Fg6WMYLgmfYvqJlMfL7hiqVAV6ANjHWNw8=.ed25519
+
+
 This can be combined with the
 [ssb-incoming-guard](https://github.com/ssbc/ssb-incoming-guard)
 module.
