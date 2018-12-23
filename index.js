@@ -98,7 +98,6 @@ exports.init = function (sbot, config) {
             pull(
               sbot.backlinks.read({
                 query: [ {$filter: { dest: announceMsg.key }} ],
-                index: 'DTA', // use asserted timestamps
                 live: false,
                 old: true
               }),
@@ -113,7 +112,6 @@ exports.init = function (sbot, config) {
             pull(
               sbot.backlinks.read({
                 query: [ {$filter: { dest: announceMsg.key }} ],
-                index: 'DTA', // use asserted timestamps
                 live: true,
                 old: false
               }),
