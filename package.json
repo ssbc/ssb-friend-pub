@@ -11,7 +11,7 @@
   "license": "Beerware",
   "dependencies": {
     "pull-stream": "^3.6.9",
-    "ssb-ref": "^2.13.9"
+    "ssb-ref": "^2.13.9",
     "ssb-sort": "^1.1.3"
   },
   "devDependencies": {
