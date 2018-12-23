@@ -8,14 +8,34 @@ my friends. Then install it on your pub and set the same config
 to 2. This way your pub will replicate to the same pubs that you
 replicate, and won't start replicating to random pubs.
 
-FIXME: integrate this with sbot to overwrite default gossiping
-
 Please note that this does *not* guarantee that your messages will not
 be gossipped outside your friends, as any node not running this module
 will connect to random pubs they have encountered. But it does give
 you some level of control and also this will prioritise messages to
 your friends assuming they connect to their pubs more often that other
 pubs.
+
+Can be installed as a plugin and enabled in config using:
+
+```
+  "plugins": {
+    "ssb-friend-pub": "friendPub"
+  }
+```
+
+This will make `ssb-friend-pub` prioritise pubs run by your friend. In
+order to only connect to these pubs, ssb-server 13.5 is needed. You
+need to disable global gossipping and enable friends as follows:
+
+```
+  "gossip": {
+   "friends": true,
+   "global": false,
+   "local": false,
+   "seed": false
+  },
+```
+
 
 Message types for owner of pub:
  - `{ type: 'pub-owner-announce', pub: '@id' }`
