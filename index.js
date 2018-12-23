@@ -131,13 +131,12 @@ exports.init = function (sbot, config) {
 
     console.log("[ssb-friend-pub] pub list: ", newPubs)
 
-    // FIXME: buggy sbot, takes an addr directly
-    /*
+    // FIXME: do a diff set instead
+
     existingPubs.forEach(function(pub) {
       if (ref.isAddress(pub.address))
-        sbot.gossip.remove(pub.address)
+        sbot.gossip.remove(ref.parseAddress(pub.address))
     })
-    */
 
     existingPubs = newPubs.slice()
 
