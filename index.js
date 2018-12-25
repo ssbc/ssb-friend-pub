@@ -141,28 +141,33 @@ exports.init = function (sbot, config) {
 
     existingPubs.forEach(function(pub) {
       if (ref.isAddress(pub.address))
-        sbot.gossip.remove(pub.address)
+        sbot.gossip.remove(ref.parseAddress(pub.address)) // make sure we have key
     })
 
     existingPubs = newPubs.slice()
 
+    function fixAddressAndGossipAdd(address, pub)
+    {
+      if (address.indexOf('~') != -1)
+        pub.address = address
+      else
+        pub.address = ref.toMultiServerAddress(ref.parseAddress(address))
+      sbot.gossip.add(pub.address, 'friends')
+    }
+
     existingPubs.forEach(function(pub) {
       if (sbot.deviceAddress) {
         sbot.deviceAddress.getAddress(pub.id, (err, deviceAddress) => {
-          if (deviceAddress) {
-            pub.address = ref.parseAddress(deviceAddress.address)
-            sbot.gossip.add(pub.address, 'friends')
-          }
+          if (deviceAddress)
+            fixAddressAndGossipAdd(deviceAddress.address, pub)
           else if (ref.isAddress(pub.address)) {
-            pub.address = ref.parseAddress(pub.address)
-            sbot.gossip.add(pub.address, 'friends')
+            fixAddressAndGossipAdd(pub.address, pub)
           }
         })
       }
       else {
         if (ref.isAddress(pub.address)) {
-          pub.address = ref.parseAddress(pub.address)
-          sbot.gossip.add(pub.address, 'friends')
+          fixAddressAndGossipAdd(pub.address, pub)
         }
       }
     })
