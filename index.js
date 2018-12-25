@@ -86,10 +86,12 @@ exports.init = function (sbot, config) {
               let type = msg.value.content.type
 
               if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.pub) {
-                pubs[announceMsg.value.content.id] = msg.value.content
-                pubs[announceMsg.value.content.id].owner = announceMsg.value.author
-                pubs[announceMsg.value.content.id].id = msg.value.author
-                delete pubs[announceMsg.value.content.id].type
+                pubs[announceMsg.value.content.id] = {
+                  announcement: msg.value.content.announcement,
+                  address: msg.value.content.address,
+                  owner: announceMsg.value.author,
+                  id: msg.value.author
+                }
               }
               else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
                 delete pubs[announceMsg.value.content.id]
@@ -144,7 +146,7 @@ exports.init = function (sbot, config) {
 
     existingPubs = newPubs.slice()
 
-    newPubs.forEach(function(pub) {
+    existingPubs.forEach(function(pub) {
       if (sbot.deviceAddress) {
         sbot.deviceAddress.getAddress(pub.id, (err, deviceAddress) => {
           if (deviceAddress) {
