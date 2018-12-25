@@ -78,8 +78,7 @@ On the pub use key:
 
 ```
 ssb-server publish --type pub-owner-confirm \
-  --announcement %ZSsBgNjZcM+DSwIgvL965Ci71huNJGH5YwonUKGFb2M=.sha256 \
-  --address 4fqstkswahy3n7mupr2gvvp2qcsp6juwzn3mnqvhkaixxepvxrrtfbid.onion:8008:@lbocEWqF2Fg6WMYLgmfYvqJlMfL7hiqVAV6ANjHWNw8=.ed25519
+  --announcement %ZSsBgNjZcM+DSwIgvL965Ci71huNJGH5YwonUKGFb2M=.sha256
 ```
 
 This can be combined with the
