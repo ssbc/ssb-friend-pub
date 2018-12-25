@@ -42,8 +42,12 @@ Message types for owner of pub:
  - `{ type: 'pub-owner-retract', announcement: '%id' }`
 
 Message types for pub:
- - `{ type: 'pub-owner-confirm', announcement: '%id', address: "xyz.onion", features: ["tor", "incoming-guard"] }`
+ - `{ type: 'pub-owner-confirm', announcement: '%id', address: "xyz.onion" }`
  - `{ type: 'pub-owner-reject', announcement: '%id' } // to reject a confirm later on`
+
+If an address has been posted using
+[ssb-device-adress](https://github.com/ssbc/ssb-device-address) then
+this will be used and the address in `confirm` message can be skipped.
 
 Example:
 

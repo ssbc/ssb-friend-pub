@@ -88,6 +88,7 @@ exports.init = function (sbot, config) {
               if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.pub) {
                 pubs[announceMsg.value.content.id] = msg.value.content
                 pubs[announceMsg.value.content.id].owner = announceMsg.value.author
+                pubs[announceMsg.value.content.id].id = msg.value.author
                 delete pubs[announceMsg.value.content.id].type
               }
               else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
@@ -138,14 +139,30 @@ exports.init = function (sbot, config) {
 
     existingPubs.forEach(function(pub) {
       if (ref.isAddress(pub.address))
-        sbot.gossip.remove(ref.parseAddress(pub.address))
+        sbot.gossip.remove(pub.address)
     })
 
     existingPubs = newPubs.slice()
 
     newPubs.forEach(function(pub) {
-      if (ref.isAddress(pub.address))
-        sbot.gossip.add(pub.address, 'friends')
+      if (sbot.deviceAddress) {
+        sbot.deviceAddress.getAddress(pub.id, (err, deviceAddress) => {
+          if (deviceAddress) {
+            pub.address = ref.parseAddress(deviceAddress.address)
+            sbot.gossip.add(pub.address, 'friends')
+          }
+          else if (ref.isAddress(pub.address)) {
+            pub.address = ref.parseAddress(pub.address)
+            sbot.gossip.add(pub.address, 'friends')
+          }
+        })
+      }
+      else {
+        if (ref.isAddress(pub.address)) {
+          pub.address = ref.parseAddress(pub.address)
+          sbot.gossip.add(pub.address, 'friends')
+        }
+      }
     })
   }
 
