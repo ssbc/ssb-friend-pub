@@ -1,6 +1,6 @@
 {
   "name": "ssb-friend-pub",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Get a list of pubs your friends are running",
   "main": "index.js",
   "scripts": {
