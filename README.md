@@ -30,6 +30,7 @@ need to disable global gossipping and enable friends as follows:
 ```
   "gossip": {
    "friends": true,
+   "autoPopulate": false,
    "global": false,
    "local": false,
    "seed": false
