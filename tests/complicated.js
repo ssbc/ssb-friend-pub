@@ -29,7 +29,7 @@ test('little more complicated case, announce + confirm + retract', t => {
     pub.add(confirm, (err) => {
       if (err) console.error(err)
 
-      const reject = { type: 'pub-owner-retract', msg: announceMsg.key }
+      const reject = { type: 'pub-owner-retract', announcement: announceMsg.key }
       // pub gets hacked or is no longer running
       me.add(reject, (err, rejectMsg) => {
         if (err) console.error(err)

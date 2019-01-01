@@ -43,7 +43,7 @@ exports.init = function (sbot, config) {
       calculatePubsWithinFriendHops(aborted.length - 1)
     }
   }
-  
+
   pull(
     sbot.friends.hopStream({live: false, old: true}),
     pull.drain(gotHops, function (err) {
@@ -65,6 +65,24 @@ exports.init = function (sbot, config) {
 
   var pubs = {}
   var pubsChangeCb = null
+
+  function handleBacklinkMsg(announceMsg, msg, pubs)
+  {
+    let type = msg.value.content.type
+
+    if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.pub) {
+      pubs[announceMsg.value.content.pub] = {
+        announcement: msg.value.content.announcement,
+        address: msg.value.content.address,
+        owner: announceMsg.value.author,
+        id: msg.value.author
+      }
+    }
+    else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
+      delete pubs[announceMsg.value.content.pub]
+    else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.pub)
+      delete pubs[announceMsg.value.content.pub]
+  }
   
   function calculatePubsWithinFriendHops(abortIndex) {
     pubs = {}
@@ -83,20 +101,7 @@ exports.init = function (sbot, config) {
             {
               if (aborted[abortIndex]) return false
 
-              let type = msg.value.content.type
-
-              if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.pub) {
-                pubs[announceMsg.value.content.pub] = {
-                  announcement: msg.value.content.announcement,
-                  address: msg.value.content.address,
-                  owner: announceMsg.value.author,
-                  id: msg.value.author
-                }
-              }
-              else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
-                delete pubs[announceMsg.value.content.pub]
-              else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.pub)
-                delete pubs[announceMsg.value.content.pub]
+              handleBacklinkMsg(announceMsg, msg, pubs)
 
               if (pubsChangeCb) pubsChangeCb(Object.values(pubs))
             }
@@ -184,6 +189,37 @@ exports.init = function (sbot, config) {
       if (aborted.length > 0) aborted[aborted.length-1] = true
       aborted.push(false)
       calculatePubsWithinFriendHops(aborted.length - 1)
+    },
+    pubsWithinHops: function(friendHops, cb) {
+      let friendHopsPubs = {}
+
+      pull(
+        sbot.messagesByType({ type: 'pub-owner-announce' }),
+        pull.collect(announceMsgs => {
+          onReady(() => {
+            let messagesParsed = 0
+            let messagesToParse = announceMsgs.filter(msg => dists[msg.value.author] <= friendHops)
+            messagesToParse.forEach(announceMsg => {
+              pull(
+                sbot.backlinks.read({
+                  query: [ {$filter: { dest: announceMsg.key }} ],
+                  live: false,
+                  old: true
+                }),
+                pull.collect((err, msgs) => {
+                  if (msgs) {
+                    let sorted = sort(msgs)
+                    sorted.forEach(msg => handleBacklinkMsg(announceMsg, msg, friendHopsPubs))
+                  }
+
+                  if (++messagesParsed == messagesToParse)
+                    cb(friendHopsPubs)
+                })
+              )
+            })
+          })
+        })
+      )
     }
   }
 }
