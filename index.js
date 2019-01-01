@@ -7,7 +7,8 @@ exports.version = require('./package.json').version
 exports.manifest = {
   pubs: 'sync',
   pubChanges: 'async',
-  changeHops: 'sync'
+  changeHops: 'sync',
+  pubsWithinHops: 'async'
 }
 
 exports.init = function (sbot, config) {
@@ -195,7 +196,8 @@ exports.init = function (sbot, config) {
 
       pull(
         sbot.messagesByType({ type: 'pub-owner-announce' }),
-        pull.collect(announceMsgs => {
+        pull.collect((err, announceMsgs) => {
+          if (err) return cb(err)
           onReady(() => {
             let messagesParsed = 0
             let messagesToParse = announceMsgs.filter(msg => dists[msg.value.author] <= friendHops)
@@ -207,13 +209,15 @@ exports.init = function (sbot, config) {
                   old: true
                 }),
                 pull.collect((err, msgs) => {
+                  if (err) return cb(err)
+
                   if (msgs) {
                     let sorted = sort(msgs)
                     sorted.forEach(msg => handleBacklinkMsg(announceMsg, msg, friendHopsPubs))
                   }
 
-                  if (++messagesParsed == messagesToParse)
-                    cb(friendHopsPubs)
+                  if (++messagesParsed == messagesToParse.length)
+                    cb(null, friendHopsPubs)
                 })
               )
             })
