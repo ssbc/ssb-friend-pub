@@ -86,7 +86,7 @@ exports.init = function (sbot, config) {
               let type = msg.value.content.type
 
               if (type == "pub-owner-confirm" && msg.value.author == announceMsg.value.content.pub) {
-                pubs[announceMsg.value.content.id] = {
+                pubs[announceMsg.value.content.pub] = {
                   announcement: msg.value.content.announcement,
                   address: msg.value.content.address,
                   owner: announceMsg.value.author,
@@ -94,9 +94,9 @@ exports.init = function (sbot, config) {
                 }
               }
               else if (type == "pub-owner-retract" && msg.value.author == announceMsg.value.author)
-                delete pubs[announceMsg.value.content.id]
+                delete pubs[announceMsg.value.content.pub]
               else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.pub)
-                delete pubs[announceMsg.value.content.id]
+                delete pubs[announceMsg.value.content.pub]
 
               if (pubsChangeCb) pubsChangeCb(Object.values(pubs))
             }
