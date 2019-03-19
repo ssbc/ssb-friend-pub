@@ -88,10 +88,22 @@ exports.init = function (sbot, config) {
     else if (type == "pub-owner-reject" && msg.value.author == announceMsg.value.content.pub)
       delete pubs[announceMsg.value.content.pub]
   }
+
+  let lastPubsValue = []
+
+  function pubsChangeCallbackOnChange(pubs)
+  {
+    const pubValues = Object.values(pubs)
+    if (pubsChangeCb && JSON.stringify(lastPubsValue) != JSON.stringify(pubValues)) {
+      lastPubsValue = pubValues
+      pubsChangeCb(pubValues)
+    }
+  }
   
-  function calculatePubsWithinFriendHops(abortIndex) {
+  function calculatePubsWithinFriendHops(abortIndex)
+  {
     pubs = {}
-    if (pubsChangeCb) pubsChangeCb(Object.values(pubs))
+    pubsChangeCallbackOnChange(pubs)
 
     pull(
       sbot.messagesByType({ live: true, type: 'pub-owner-announce' }),
@@ -108,7 +120,7 @@ exports.init = function (sbot, config) {
 
               handleBacklinkMsg(announceMsg, msg, pubs)
 
-              if (pubsChangeCb) pubsChangeCb(Object.values(pubs))
+              pubsChangeCallbackOnChange(pubs)
             }
 
             pull(

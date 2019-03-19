@@ -22,15 +22,9 @@ test('pub changes', t => {
   let stateIndex = 0
 
   server.friendPub.pubChanges(pubs => {
-    if (stateIndex == 0) // reset pubs
-      t.equal(pubs.length, 0, "0 pubs available")
-    if (stateIndex == 1) {
-      t.equal(pubs.length, 1, "1 pub available")
-      t.end()
-      server.close()
-    }
-
-    stateIndex += 1
+    t.equal(pubs.length, 1, "1 pub available")
+    t.end()
+    server.close()
   })
   
   const announce = { type: 'pub-owner-announce', pub: keyPub.id }
