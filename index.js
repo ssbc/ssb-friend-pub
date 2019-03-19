@@ -15,7 +15,11 @@ exports.init = function (sbot, config) {
   sbot.emit('log:info', ['SBOT', 'ssb-friend-pub init'])
 
   if (!sbot.friends || !sbot.friends.hopStream) {
-    sbot.emit('log:error', ['SBOT', 'missing sbot.friends.hopStream'])
+    sbot.emit('log:error', ['ssb-friend-pub', 'ssb-friend-pub', 'missing sbot.friends.hopStream'])
+    return
+  }
+  if (!sbot.backlinks || !sbot.backlinks.read) {
+    sbot.emit('log:error', ['ssb-friend-pub', 'ssb-friend-pub', 'missing sbot.backlinks.read'])
     return
   }
 
@@ -27,7 +31,7 @@ exports.init = function (sbot, config) {
   var dists = {}
 
   function gotHops(data) {
-    let friendHops = runtimeFriendHops != null ? runtimeFriendHops : (config.friendPub && config.friendPub.hops || 1)
+    let friendHops = runtimeFriendHops != null ? runtimeFriendHops : ((config.friendPub && config.friendPub.hops) || 1)
     let wasChange = false
     for (let k in data) {
       if (data[k] <= friendHops && (dists[k] > friendHops || dists[k] === undefined))
@@ -141,9 +145,13 @@ exports.init = function (sbot, config) {
   pubsChangeCb = function (newPubs) {
     if (!sbot.gossip) return // tests
 
-    console.log("[ssb-friend-pub] pub list: ", newPubs)
-
-    // FIXME: do a diff set instead
+    sbot.emit('log:info', [
+      'ssb-friend-pub', // plug
+      'ssb-friend-pub', // id - till logging formatter stops truncating plug!
+      'new pubs:', // verb
+      newPubs // data
+    ])
+    // FIXME: do a diff set instead of just outputting all pubs
 
     existingPubs.forEach(function(pub) {
       if (ref.isAddress(pub.address))
