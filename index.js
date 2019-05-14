@@ -30,8 +30,16 @@ exports.init = function (sbot, config) {
   var cbs = []
   var dists = {}
 
+  function getCurrentHops()
+  {
+    let friendHops = runtimeFriendHops != null ? runtimeFriendHops : 1
+    if (config.friendPub)
+      friendHops = config.friendPub.hops
+    return friendHops
+  }
+
   function gotHops(data) {
-    let friendHops = runtimeFriendHops != null ? runtimeFriendHops : ((config.friendPub && config.friendPub.hops) || 1)
+    let friendHops = getCurrentHops()
     let wasChange = false
     for (let k in data) {
       if (data[k] <= friendHops && (dists[k] > friendHops || dists[k] === undefined))
@@ -111,7 +119,7 @@ exports.init = function (sbot, config) {
       pull.drain(announceMsg => {
         if (aborted[abortIndex]) return false
         onReady(() => {
-          let friendHops = runtimeFriendHops != null ? runtimeFriendHops : (config.friendPub && config.friendPub.hops || 1)
+          let friendHops = getCurrentHops()
           let hops = dists[announceMsg.value.author]
           if (hops <= friendHops) {
             function handleUpdate(msg)
