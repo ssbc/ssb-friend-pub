@@ -177,9 +177,7 @@ exports.init = function (sbot, config) {
     {
       // we might still have some old hosts in gossip table
       sbot.gossip.peers((err, pubs) => {
-        console.log("got pubs!", pubs)
         pubs.forEach((pub) => {
-          console.log(pub.source)
           if (pub.source == "friends" && ref.isAddress(pub.address))
             sbot.gossip.remove(ref.parseAddress(pub.address)) // make sure we have key
         })
