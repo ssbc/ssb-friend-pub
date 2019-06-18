@@ -1,31 +1,42 @@
+# ssb-friend-pub
+
 A module for [scuttlebot](https://github.com/ssbc/scuttlebot) that
 interprets pub owner announcements and presents a list of pubs run by
 your friends or within a certain number of hops.
 
-One way to run this, is to install it on your machine and set
-`friendPub.hops` to 1. Meaning only replicate with pubs run by me or
-my friends. Then install it on your pub and set the same config
-to 2. This way your pub will replicate to the same pubs that you
-replicate, and won't start replicating to random pubs.
+
+## Combining with Incoming Guard
+
+This can be combined with the
+[ssb-incoming-guard](https://github.com/ssbc/ssb-incoming-guard) module to
+restrict replication within a defined hop limit.
+
+For example, one way to do this is to install it on your machine and set
+`friendPub.hops` to 1. Meaning only replicate with pubs run by me or my
+friends. Then install it on your pub and set the same config to 2. This way
+your pub will replicate to the same pubs that you replicate, and won't start
+replicating to random pubs.
 
 Please note that this does *not* guarantee that your messages will not
-be gossipped outside your friends, as any node not running this module
+be gossiped outside your friends, as any node not running this module
 will connect to random pubs they have encountered. But it does give
 you some level of control and also this will prioritise messages to
 your friends assuming they connect to their pubs more often that other
 pubs.
 
+## Install
+
 Can be installed as a plugin and enabled in config using:
 
+``` bash
+  sbot plugins.install ssb-friend-pub
 ```
-  "plugins": {
-    "ssb-friend-pub": "friendPub"
-  }
-```
+
+## Usage
 
 This will make `ssb-friend-pub` prioritise pubs run by your friend. In
 order to only connect to these pubs, ssb-server 13.5 is needed. You
-need to disable global gossipping and enable friends as follows:
+need to disable global gossiping and enable friends as follows:
 
 ```
   "gossip": {
@@ -47,7 +58,7 @@ Message types for pub:
  - `{ type: 'pub-owner-reject', announcement: '%id' } // to reject a confirm later on`
 
 If an address has been posted using
-[ssb-device-adress](https://github.com/ssbc/ssb-device-address) then
+[ssb-device-address](https://github.com/ssbc/ssb-device-address) then
 this will be used and the address in `confirm` message can be skipped.
 
 Example:
@@ -81,7 +92,3 @@ On the pub use key:
 ssb-server publish --type pub-owner-confirm \
   --announcement %ZSsBgNjZcM+DSwIgvL965Ci71huNJGH5YwonUKGFb2M=.sha256
 ```
-
-This can be combined with the
-[ssb-incoming-guard](https://github.com/ssbc/ssb-incoming-guard)
-module.
